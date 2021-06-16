@@ -1,12 +1,23 @@
 FROM golang:1.15.5
 
-WORKDIR /go/src/app
-COPY . .
+MAINTAINER mark.hsieh "mark.hsieh@hwaotech.com"
+WORKDIR /www
 
-RUN export GO111MODULE=on
-RUN go mod init gitlhub.com/go-redis/test
-RUN go test
-RUN go get -d -v ./... 
-RUN go install -v ./...
+RUN mkdir -p /www/conf
+RUN mkdir -p /www/resources
 
-CMD ["go", "run", "main.go"]
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y bash
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y net-tools
+RUN apt-get install -y procps
+RUN apt-get install -y tofrodos
+
+RUN mkdir -p /opt/go_process
+WORKDIR /go/bin
+
+COPY ./entrypoint.sh /opt/
+RUN chmod +x /opt/entrypoint.sh
+EXPOSE 80
+
+CMD [ "/bin/bash", "/opt/entrypoint.sh" ]
