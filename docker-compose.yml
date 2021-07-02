@@ -1,0 +1,46 @@
+version: '3.5'
+
+x-services-volume:
+  &share-volume
+  type: bind
+  source: ./gin-layui-admin
+  target: /opt
+
+services:  
+  fruit.imgupload:  
+    image: golang:1.15.5-modify
+    container_name: fruit.imgupload
+    command: ./main
+    restart: always
+    volumes: 
+      - *share-volume
+    working_dir: /opt
+    cap_add: 
+      - SYS_TIME 
+      - SYS_NICE 
+    ports: 
+      - 8051:8000
+  fruit.imgread:
+    image: nginx:1.20-alpine-modify 
+    container_name: fruit.imgread
+    command: [nginx-debug, '-g', 'daemon off;']
+    restart: always
+    volumes: 
+      - *share-volume
+      - ./nginx-config-d:/etc/nginx/templates
+    working_dir: /opt
+    cap_add:
+      - SYS_TIME
+      - SYS_NICE
+    environment:
+      #- NGINX_HOST=foobar.com
+      - NGINX_PORT=80
+      #- NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+      #- NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+      #- NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
+    ports:
+      - 8052:80
+networks: 
+  default: 
+    external: 
+      name: fruit-bridge 
